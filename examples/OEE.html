@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="../build/nv.d3.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script src="../build/nv.d3.js"></script>
+    <script src="lib/stream_layers.js"></script>
+
+    <style>
+        html, body,svg {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            width: 100%;
+        }
+		
+		#OEE_1, #OEE_2, #OEE_3, #OEE_4 {
+            margin: 0px;
+            padding: 0px;
+            
+			    display: inline !important;
+        }
+		#PIE, #SUN {
+            margin: 0px;
+            padding: 0px;
+			    display: inline !important;
+        }
+    </style>
+	
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="./bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="./bootstrap-theme.min.css">
+</head>
+<body>
+
+<svg id="OEE_1"></svg>
+<svg id="OEE_2"></svg>
+<svg id="OEE_3"></svg>
+<svg id="OEE_4"></svg>
+<div></div>
+<svg id="PIE"></svg>
+
+<svg id="SUN"></svg>
+<div></div>
+<div id="table1" style="width:350px;"></div>
+
+<!-- <script src="./bootstrap.min.js"></script> -->
+
+<script>
+
+    var chart;
+
+    nv.addGraph(function() {
+        chart = nv.models.gauge()
+		.width(200).height(200)
+		.unit("%")
+		.redZone({from:0,to:20})
+		.yellowZone({from:20,to:50})
+		.greenZone({from:50,to:100});
+
+        chart.color(d3.scale.category20c());
+
+        d3.select("#OEE_1")
+                .datum([{
+            "name": "Disponibilità",
+            "value": 90
+        }])		
+                .call(chart).style({ 'width': 200, 'height': 200 });
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+	
+	nv.addGraph(function() {
+        chart = nv.models.gauge().width(200).height(200).unit("%")
+		.redZone({from:0,to:20}).yellowZone({from:20,to:50}).greenZone({from:50,to:100});
+
+        chart.color(d3.scale.category20c());
+
+        d3.select("#OEE_2")
+                .datum([{
+            "name": "Prestazioni",
+            "value": 75
+        }])
+                .call(chart).style({ 'width': 200, 'height': 200 });
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+	
+	nv.addGraph(function() {
+        chart = nv.models.gauge().width(200).height(200).unit("%")
+		.redZone({from:0,to:20}).yellowZone({from:20,to:50}).greenZone({from:50,to:100});
+
+        chart.color(d3.scale.category20c());
+
+        d3.select("#OEE_3")
+                .datum([{
+            "name": "Qualità",
+            "value": 97
+        }])
+                .call(chart).style({ 'width': 200, 'height': 200 });
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+	
+	nv.addGraph(function() {
+        chart = nv.models.gauge().width(200).height(200).unit("%")
+		.redZone({from:0,to:20}).yellowZone({from:20,to:50}).greenZone({from:50,to:100});
+
+        chart.color(d3.scale.category20c());
+
+        d3.select("#OEE_4")
+                .datum([{
+            "name": "OEE",
+            "value": 83
+        }])
+                .call(chart).style({ 'width': 200, 'height': 200 });
+
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+
+	nv.addGraph(function() { 
+         chart = nv.models.sunburstChart().mode("size").width(350).height(350); 
+  
+         chart.color(d3.scale.category20c()); 
+  
+         d3.select("#SUN") 
+                 .datum(getData()) 
+                 .call(chart).style({ 'width': 350, 'height': 350 }); 
+  
+         nv.utils.windowResize(chart.update); 
+  
+         return chart; 
+     }); 
+
+	 var height = 350; 
+     var width = 350; 
+
+	 	nv.addGraph(function() { 
+         chart = nv.models.pieChart()
+.x(function(d) { return d.key }) 
+             .y(function(d) { return d.y }) 
+             .width(width) 
+             .height(height)
+			 .showLegend(false).labelsOutside(true); 
+ 
+        
+  
+         d3.select("#PIE") 
+                .datum( [ 
+         {key: "Setup", y: 5, color: "#5F5"}, 
+       {key: "Vistosi", y: 2}, 
+         {key: "Scarti Produzione", y: 9}, 
+         {key: "Produzione", y: 7}, 
+         {key: "Buoni Produzione", y: 4}, 
+         {key: "Scarti", y: 3}
+     ] 
+)
+				//.transition().duration(1200) 
+				//.attr('width', width) 
+				//.attr('height', height) 
+				.call(chart).style({ 'width': width, 'height': height }); 
+  
+         nv.utils.windowResize(chart.update); 
+  
+         return chart; 
+     }); 
+	 
+	 
+	 nv.addGraph(function() {
+  var chart = nv.models.indentedTree()
+                .tableClass('table table-striped') //for bootstrap styling
+				.width(200)
+                .columns([
+                  {
+                    key: 'key',
+                    label: 'Metraggi',
+                    showCount: true,
+                    width: '75%',
+                    type: 'text',
+                    classes: function(d) { return d.url ? 'clickable name' : 'name' },
+                    click: function(d) {
+                       if (d.url) window.location.href = d.url;
+                    }
+                  },
+                  {
+                    key: 'value',
+                    label: 'Lunghezza',
+                    width: '25%',
+                    type: 'text'
+                  }
+                ]);
+
+
+  d3.select('#table1')
+      .datum([
+	  {key: "Setup", value: 5, color: "#5F5"}, 
+       {key: "Vistosi", value: 2}, 
+         {key: "Scarti Produzione", value: 9}, 
+         {key: "Produzione", value: 7}, 
+         {key: "Buoni Produzione", value: 4}, 
+         {key: "Scarti", value: 3}]
+	  )
+    .call(chart).style({"width":200});
+
+  return chart;
+});
+	
+    function getData() {
+        return [{ 
+"name": "Tempo totale", 
+"children": [ 
+    {"name": "Planned", 
+     "children": [ 
+        {"name": "Operating time","children": [],"size": 40 }, 
+        {"name": "Down time loss","children": [ 
+            {"name": "Tempo 1", "size": 10 }, 
+            {"name": "Tempo 2", "size": 10 }, 
+            {"name": "Tempo 3", "size": 10 }, 
+            {"name": "Tempo 4", "size": 1 }, 
+            {"name": "Tempo 5", "size": 10 }, 
+            {"name": "Tempo 6", "size": 8 }, 
+            {"name": "Tempo 7", "size": 3 }],
+			"size":52
+        }] 
+    }, 
+    {"name": "Ferma","children": [],"size":40}, 
+    {"name": "Manutenzione ordinaria programmata","children": [],"size":20}] 
+}];
+    }
+
+</script>
+</body>
+</html>

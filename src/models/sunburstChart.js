@@ -121,7 +121,8 @@ nv.models.sunburstChart = function() {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
-
+width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
             color = _;
