@@ -9,6 +9,7 @@ nv.models.sunburst = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = null
         , height = null
+		, maxdepth=10000
         , mode = "count"
         , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -101,6 +102,7 @@ nv.models.sunburst = function() {
                     }
                 })
                 .style("stroke", "#FFF")
+				.attr("visibility",function (d){if (d.depth >maxdepth) return "hidden";})
                 .on("click", function(d) {
                     if (prevNode !== node && node !== d) prevNode = node;
                     node = d;
@@ -201,6 +203,7 @@ nv.models.sunburst = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+		maxdepth:   {get: function(){return maxdepth;}, set: function(_){maxdepth=_;}},
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         mode:       {get: function(){return mode;}, set: function(_){mode=_;}},

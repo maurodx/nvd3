@@ -6,8 +6,8 @@ nv.models.pie = function() {
     //------------------------------------------------------------
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
-        , width = 500
-        , height = 500
+        , width = null
+        , height = null
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -29,6 +29,7 @@ nv.models.pie = function() {
         , cornerRadius = 0
         , donutRatio = 0.5
         , arcsRadius = []
+		, duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
@@ -51,7 +52,9 @@ nv.models.pie = function() {
                 , arcsRadiusInner = []
                 ;
 
-            container = d3.select(this)
+            container = d3.select(this);
+			nv.utils.initSVG(container);
+			
             if (arcsRadius.length === 0) {
                 var outer = radius - radius / 5;
                 var inner = donutRatio * radius;
@@ -64,7 +67,7 @@ nv.models.pie = function() {
                 arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
                 donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
             }
-            nv.utils.initSVG(container);
+            
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('.nv-wrap.nv-pie').data(data);
@@ -78,6 +81,16 @@ nv.models.pie = function() {
             g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
             g.select('.nv-pieLabels').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
+			chart.update = function() { 
+                if ( duration === 0 ) {
+                    container.call(chart);
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
+            };
+            chart.container = this;
+
+			
             //
             container.on('click', function(d,i) {
                 dispatch.chartClick({

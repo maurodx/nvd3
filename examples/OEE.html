@@ -130,29 +130,32 @@
     });
 
 	nv.addGraph(function() { 
-         chart = nv.models.sunburstChart().mode("size").width(350).height(350); 
+	var height = 350; 
+     var width = 350; 
+         chart = nv.models.sunburstChart().mode("size").width(width).height(height).maxdepth(20); 
   
          chart.color(d3.scale.category20c()); 
   
          d3.select("#SUN") 
                  .datum(getData()) 
-                 .call(chart).style({ 'width': 350, 'height': 350 }); 
+                 .call(chart).style({ 'width': width, 'height': height }); 
   
          nv.utils.windowResize(chart.update); 
   
          return chart; 
      }); 
 
-	 var height = 350; 
-     var width = 350; 
+	 
 
 	 	nv.addGraph(function() { 
+		var height = 350; 
+     var width = 350; 
          chart = nv.models.pieChart()
 .x(function(d) { return d.key }) 
              .y(function(d) { return d.y }) 
              .width(width) 
              .height(height)
-			 .showLegend(false).labelsOutside(true); 
+			 .showLegend(false).labelsOutside(true).labelSunbeamLayout(false).showLabels(false); 
  
         
   
@@ -181,11 +184,12 @@
   var chart = nv.models.indentedTree()
                 .tableClass('table table-striped') //for bootstrap styling
 				.width(200)
+				
                 .columns([
                   {
                     key: 'key',
                     label: 'Metraggi',
-                    showCount: true,
+                    showCount: false,
                     width: '75%',
                     type: 'text',
                     classes: function(d) { return d.url ? 'clickable name' : 'name' },
@@ -203,13 +207,13 @@
 
 
   d3.select('#table1')
-      .datum([
-	  {key: "Setup", value: 5, color: "#5F5"}, 
+      .datum([{values:[
+	  {key: "Setup", value: 5}, 
        {key: "Vistosi", value: 2}, 
          {key: "Scarti Produzione", value: 9}, 
          {key: "Produzione", value: 7}, 
          {key: "Buoni Produzione", value: 4}, 
-         {key: "Scarti", value: 3}]
+         {key: "Scarti", value: 3}]}]
 	  )
     .call(chart).style({"width":200});
 

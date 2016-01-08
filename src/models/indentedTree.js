@@ -44,8 +44,8 @@ nv.models.indentedTree = function() {
       //------------------------------------------------------------
 
 
-      var nodes = tree.nodes(data);
-
+      var nodes = tree.nodes(data[0]);
+	  var onlyOne = data.length === 1;
       // nodes.map(function(d) {
       //   d.id = i++;
       // })
@@ -91,30 +91,35 @@ nv.models.indentedTree = function() {
       // Update the nodes…
       var node = tbody.selectAll('tr')
           // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
-          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; } )}, function(d,i) { return d.id || (d.id || ++idx)});
+          .data(function(d) { return d.filter(function(d) { 
+		  return (filterZero && !d.children) ? filterZero(d) :  (d.children)?!onlyOne:true; 
+		  } )}, function(d,i) { return d.id || (d.id || ++idx)});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
 
-      node.select('img.nv-treeicon')
-          .attr('src', icon)
-          .classed('folded', folded);
+      node.select('a.nv-treeicon')          
+          .classed('folded', folded)
+		  .text(folded?'X':'+');
 
       var nodeEnter = node.enter().append('tr');
 
 
       columns.forEach(function(column, index) {
-
+//if (index > 0 || !onlyOne) {
         var nodeName = nodeEnter.append('td')
-            .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
+            .style('padding-left', function(d) { 
+			return (index ? 0 : (onlyOne?d.depth-1:d.depth) * childIndent + (onlyOne?0:12) + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
             .style('text-align', column.type == 'numeric' ? 'right' : 'left');
+//}
 
-
-        if (index == 0) {
-          nodeName.append('img')
+        if (index == 0 && !onlyOne) {
+          nodeName.append('a')
               .classed('nv-treeicon', true)
               .classed('nv-folded', folded)
-              .attr('src', icon)
+              .attr('href', '#')
+			  .text(function(d) { return folded(d)?'+':'X';})
+			  .style('font-weight','bolder')
               .style('width', '14px')
               .style('height', '14px')
               .style('padding', '0 1px')
@@ -122,7 +127,7 @@ nv.models.indentedTree = function() {
               .on('click', click);
         }
 
-
+		if (nodeName){
         nodeName.each(function(d) {
           if (!index && getUrl(d))
             d3.select(this)
@@ -131,14 +136,15 @@ nv.models.indentedTree = function() {
               .attr('class', d3.functor(column.classes))
               .append('span')
           else
-            d3.select(this)
-              .append('span')
+            if (d[column.key]){
+		d3.select(this)
+              .append('span');
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? column.format(d) :
-                                        (d[column.key] || '-') });
-          });
+              .text(function(d) { 
+		return column.format ? column.format(d) : (d[column.key] || '-') });}
+		});
 
         if  (column.showCount) {
           nodeName.append('span')
@@ -152,7 +158,7 @@ nv.models.indentedTree = function() {
                     : ''                                                                                                     //If this is not a parent, just give an empty string
             });
         }
-
+}
         // if (column.click)
         //   nodeName.select('span').on('click', column.click);
 

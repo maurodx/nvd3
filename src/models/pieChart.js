@@ -69,7 +69,13 @@ nv.models.pieChart = function() {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
-            chart.update = function() { container.transition().call(chart); };
+            chart.update = function() {
+                if (duration === 0) {
+                    container.call(chart);
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
+            };
             chart.container = this;
 
             state.setter(stateSetter(data), chart.update)
@@ -211,6 +217,8 @@ nv.models.pieChart = function() {
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -221,6 +229,7 @@ nv.models.pieChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+			pie.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;

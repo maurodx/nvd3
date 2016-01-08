@@ -6027,8 +6027,8 @@ nv.models.indentedTree = function() {
       //------------------------------------------------------------
 
 
-      var nodes = tree.nodes(data);
-
+      var nodes = tree.nodes(data[0]);
+	  var onlyOne = data.length === 1;
       // nodes.map(function(d) {
       //   d.id = i++;
       // })
@@ -6074,30 +6074,35 @@ nv.models.indentedTree = function() {
       // Update the nodes�
       var node = tbody.selectAll('tr')
           // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
-          .data(function(d) { return d.filter(function(d) { return (filterZero && !d.children) ? filterZero(d) :  true; } )}, function(d,i) { return d.id || (d.id || ++idx)});
+          .data(function(d) { return d.filter(function(d) { 
+		  return (filterZero && !d.children) ? filterZero(d) :  (d.children)?!onlyOne:true; 
+		  } )}, function(d,i) { return d.id || (d.id || ++idx)});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
 
-      node.select('img.nv-treeicon')
-          .attr('src', icon)
-          .classed('folded', folded);
+      node.select('a.nv-treeicon')          
+          .classed('folded', folded)
+		  .text(folded?'X':'+');
 
       var nodeEnter = node.enter().append('tr');
 
 
       columns.forEach(function(column, index) {
-
+//if (index > 0 || !onlyOne) {
         var nodeName = nodeEnter.append('td')
-            .style('padding-left', function(d) { return (index ? 0 : d.depth * childIndent + 12 + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
+            .style('padding-left', function(d) { 
+			return (index ? 0 : (onlyOne?d.depth-1:d.depth) * childIndent + (onlyOne?0:12) + (icon(d) ? 0 : 16)) + 'px' }, 'important') //TODO: check why I did the ternary here
             .style('text-align', column.type == 'numeric' ? 'right' : 'left');
+//}
 
-
-        if (index == 0) {
-          nodeName.append('img')
+        if (index == 0 && !onlyOne) {
+          nodeName.append('a')
               .classed('nv-treeicon', true)
               .classed('nv-folded', folded)
-              .attr('src', icon)
+              .attr('href', '#')
+			  .text(function(d) { return folded(d)?'+':'X';})
+			  .style('font-weight','bolder')
               .style('width', '14px')
               .style('height', '14px')
               .style('padding', '0 1px')
@@ -6105,7 +6110,7 @@ nv.models.indentedTree = function() {
               .on('click', click);
         }
 
-
+		if (nodeName){
         nodeName.each(function(d) {
           if (!index && getUrl(d))
             d3.select(this)
@@ -6114,14 +6119,15 @@ nv.models.indentedTree = function() {
               .attr('class', d3.functor(column.classes))
               .append('span')
           else
-            d3.select(this)
-              .append('span')
+            if (d[column.key]){
+		d3.select(this)
+              .append('span');
 
             d3.select(this).select('span')
               .attr('class', d3.functor(column.classes) )
-              .text(function(d) { return column.format ? column.format(d) :
-                                        (d[column.key] || '-') });
-          });
+              .text(function(d) { 
+		return column.format ? column.format(d) : (d[column.key] || '-') });}
+		});
 
         if  (column.showCount) {
           nodeName.append('span')
@@ -6135,7 +6141,7 @@ nv.models.indentedTree = function() {
                     : ''                                                                                                     //If this is not a parent, just give an empty string
             });
         }
-
+}
         // if (column.click)
         //   nodeName.select('span').on('click', column.click);
 
@@ -11439,8 +11445,8 @@ nv.models.parallelCoordinatesChart = function () {
     //------------------------------------------------------------
 
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
-        , width = 500
-        , height = 500
+        , width = null
+        , height = null
         , getX = function(d) { return d.x }
         , getY = function(d) { return d.y }
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -11462,6 +11468,7 @@ nv.models.parallelCoordinatesChart = function () {
         , cornerRadius = 0
         , donutRatio = 0.5
         , arcsRadius = []
+		, duration = 500
         , dispatch = d3.dispatch('chartClick', 'elementClick', 'elementDblClick', 'elementMouseover', 'elementMouseout', 'elementMousemove', 'renderEnd')
         ;
 
@@ -11484,7 +11491,9 @@ nv.models.parallelCoordinatesChart = function () {
                 , arcsRadiusInner = []
                 ;
 
-            container = d3.select(this)
+            container = d3.select(this);
+			nv.utils.initSVG(container);
+			
             if (arcsRadius.length === 0) {
                 var outer = radius - radius / 5;
                 var inner = donutRatio * radius;
@@ -11497,7 +11506,7 @@ nv.models.parallelCoordinatesChart = function () {
                 arcsRadiusInner = arcsRadius.map(function (d) { return (d.inner - d.inner / 5) * radius; });
                 donutRatio = d3.min(arcsRadius.map(function (d) { return (d.inner - d.inner / 5); }));
             }
-            nv.utils.initSVG(container);
+            
 
             // Setup containers and skeleton of chart
             var wrap = container.selectAll('.nv-wrap.nv-pie').data(data);
@@ -11511,6 +11520,16 @@ nv.models.parallelCoordinatesChart = function () {
             g.select('.nv-pie').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
             g.select('.nv-pieLabels').attr('transform', 'translate(' + availableWidth / 2 + ',' + availableHeight / 2 + ')');
 
+			chart.update = function() { 
+                if ( duration === 0 ) {
+                    container.call(chart);
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
+            };
+            chart.container = this;
+
+			
             //
             container.on('click', function(d,i) {
                 dispatch.chartClick({
@@ -11925,7 +11944,13 @@ nv.models.pieChart = function() {
             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
-            chart.update = function() { container.transition().call(chart); };
+            chart.update = function() {
+                if (duration === 0) {
+                    container.call(chart);
+                } else {
+                    container.transition().duration(duration).call(chart);
+                }
+            };
             chart.container = this;
 
             state.setter(stateSetter(data), chart.update)
@@ -12067,6 +12092,8 @@ nv.models.pieChart = function() {
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
+width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -12077,6 +12104,7 @@ nv.models.pieChart = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
+			pie.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
@@ -14269,6 +14297,7 @@ nv.models.sunburst = function() {
     var margin = {top: 0, right: 0, bottom: 0, left: 0}
         , width = null
         , height = null
+		, maxdepth=10000
         , mode = "count"
         , modes = {count: function(d) { return 1; }, size: function(d) { return d.size }}
         , id = Math.floor(Math.random() * 10000) //Create semi-unique ID in case user doesn't select one
@@ -14361,6 +14390,7 @@ nv.models.sunburst = function() {
                     }
                 })
                 .style("stroke", "#FFF")
+				.attr("visibility",function (d){if (d.depth >maxdepth) return "hidden";})
                 .on("click", function(d) {
                     if (prevNode !== node && node !== d) prevNode = node;
                     node = d;
@@ -14461,6 +14491,7 @@ nv.models.sunburst = function() {
 
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+		maxdepth:   {get: function(){return maxdepth;}, set: function(_){maxdepth=_;}},
         width:      {get: function(){return width;}, set: function(_){width=_;}},
         height:     {get: function(){return height;}, set: function(_){height=_;}},
         mode:       {get: function(){return mode;}, set: function(_){mode=_;}},
