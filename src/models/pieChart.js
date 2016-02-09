@@ -66,16 +66,10 @@ nv.models.pieChart = function() {
             nv.utils.initSVG(container);
 
             var that = this;
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
+             var availableWidth = nv.utils.availableWidth(width, container, margin),
                 availableHeight = nv.utils.availableHeight(height, container, margin);
 
-            chart.update = function() {
-                if (duration === 0) {
-                    container.call(chart);
-                } else {
-                    container.transition().duration(duration).call(chart);
-                }
-            };
+            chart.update = function() { container.transition().call(chart); };
             chart.container = this;
 
             state.setter(stateSetter(data), chart.update)
@@ -113,7 +107,9 @@ nv.models.pieChart = function() {
             gEnter.append('g').attr('class', 'nv-legendWrap');
 
             // Legend
-            if (showLegend) {
+            if (!showLegend) {
+                g.select('.nv-legendWrap').selectAll('*').remove();
+            } else {
                 if (legendPosition === "top") {
                     legend.width( availableWidth ).key(pie.x());
 
@@ -213,12 +209,12 @@ nv.models.pieChart = function() {
     // use Object get/set functionality to map between vars and chart functions
     chart._options = Object.create({}, {
         // simple options, just get/set the necessary values
+        width:      {get: function(){return width;}, set: function(_){width=_;}},
+        height:     {get: function(){return height;}, set: function(_){height=_;}},
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
         showLegend:     {get: function(){return showLegend;},     set: function(_){showLegend=_;}},
         legendPosition: {get: function(){return legendPosition;}, set: function(_){legendPosition=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
-width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
 
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
@@ -229,7 +225,6 @@ width:      {get: function(){return width;}, set: function(_){width=_;}},
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
-			pie.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;

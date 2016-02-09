@@ -24,22 +24,24 @@ nv.models.indentedTree = function() {
   //============================================================
 
   var idx = 0;
+ var renderWatch = nv.utils.renderWatch(dispatch);
 
   function chart(selection) {
+	  renderWatch.reset();
     selection.each(function(data) {
       var depth = 1,
           container = d3.select(this);
-
+		var that = this;
       var tree = d3.layout.tree()
           .children(function(d) {if (d.children) return d.children; return d.values; })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
       chart.update = function() { container.transition().duration(600).call(chart) };
-
+		chart.container = this;
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-      if (!data[0]) data[0] = {key: noData};
+      if (!data || !data[0]) data[0] = {key: noData};
 
       //------------------------------------------------------------
 
@@ -53,7 +55,7 @@ nv.models.indentedTree = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = d3.select(this).selectAll('div').data([[nodes]]);
+      var wrap = container/*d3.select(this)*/.selectAll('div').data([[nodes]]);
       var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
       var tableEnter = wrapEnter.append('table');
       var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
@@ -89,12 +91,13 @@ nv.models.indentedTree = function() {
 
 
       // Update the nodes…
+	  var i=0;
       var node = tbody.selectAll('tr')
           // .data(function(d) { return d; }, function(d) { return d.id || (d.id == ++i)});
           .data(function(d) { 
 					return d.filter(function(d) { 
 										return (filterZero && !d.children) ? filterZero(d) :  (d.children)?!onlyOne:true; 
-		  } )}, function(d,i) { return d.id || (d.id || ++idx)});
+		  } )}, function(d) { if (d.id)  return d.id;(d.id == ++i); return d.id;});
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
@@ -103,7 +106,7 @@ nv.models.indentedTree = function() {
           .classed('folded', folded)
 		  .text(folded?'X':'+');
 
-      var nodeEnter = node.enter().append('tr');
+      var nodeEnter = node.data(function(d) { return d }).enter().append('tr');
 
 
       columns.forEach(function(column, index) {
@@ -126,6 +129,14 @@ nv.models.indentedTree = function() {
               .style('padding', '0 1px')
               .style('display', function(d) { return icon(d) ? 'inline-block' : 'none'; })
               .on('click', click);
+			  nodeName.append('div')
+		.classed('nv-color',true)
+		.style('width', '14px')
+              .style('height', '14px')
+              .style('padding', '0 1px')
+			  .style('display','inline-block')
+			  .style('margin-right','10px')
+			  .style('background-color', function(d) { return d.color;});
         }
 
 		if (nodeName){
@@ -245,7 +256,7 @@ nv.models.indentedTree = function() {
 
 
     });
-
+	//renderWatch.renderEnd('indentedTree immediate');
     return chart;
   }
 
@@ -253,6 +264,7 @@ nv.models.indentedTree = function() {
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
+  chart.dispatch = dispatch;
   chart.options = nv.utils.optionsFunc.bind(chart);
   
   chart.margin = function(_) {
@@ -279,7 +291,7 @@ nv.models.indentedTree = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    scatter.color(color);
+    //scatter.color(color);
     return chart;
   };
 
@@ -624,7 +636,7 @@ nv.models.indentedTree2 = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    scatter.color(color);
+    //scatter.color(color);
     return chart;
   };
 
@@ -711,12 +723,14 @@ nv.models.indentedTree3 = function() {
     ;
 
   //============================================================
-
+var renderWatch = nv.utils.renderWatch(dispatch);
 
   function chart(selection) {
+	  renderWatch.reset();
     selection.each(function(data) {
-      var i = 0,
-          depth = 1;
+      var depth = 1,
+          container = d3.select(this);
+		var that = this;
 
       var tree = d3.layout.tree()
           .children(function(d) { 
@@ -725,13 +739,13 @@ nv.models.indentedTree3 = function() {
 		  })
           .size([height, childIndent]); //Not sure if this is needed now that the result is HTML
 
-      chart.update = function() { selection.transition().call(chart) };
+      chart.update = function() { container.call(chart); };
       chart.container = this;
 
 
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
-      if (!data[0]) data[0] = {key: noData};
+      if (!data || !data[0]) data[0] = {key: noData};
 
       //------------------------------------------------------------
 
@@ -742,7 +756,7 @@ nv.models.indentedTree3 = function() {
       //------------------------------------------------------------
       // Setup containers and skeleton of chart
 
-      var wrap = d3.select(this).selectAll('div').data([[nodes]]);
+      var wrap = container.selectAll('div').data([[nodes]]);
       var wrapEnter = wrap.enter().append('div').attr('class', 'nvd3 nv-wrap nv-indentedtree');
       var tableEnter = wrapEnter.append('table');
       var table = wrap.select('table').attr('width', '100%').attr('class', tableClass);
@@ -777,9 +791,12 @@ nv.models.indentedTree3 = function() {
       tree.size([height, depth * childIndent]); //TODO: see if this is necessary at all
 
 
-      // Update the nodes…
+      // Update the nodes?
+	  var i=0;
       var node = tbody.selectAll('tr')
-          .data(function(d) { return d }, function(d) { return d.id || (d.id == ++i)});
+          .data(function(d) { return d }, function(d) {
+					if (d.id)  return d.id;(d.id == ++i); return d.id;
+		  });
           //.style('display', 'table-row'); //TODO: see if this does anything
 
       node.exit().remove();
@@ -789,7 +806,7 @@ nv.models.indentedTree3 = function() {
           .attr('src', icon)
           .classed('folded', folded);
 
-      var nodeEnter = node.enter().append('tr');
+      var nodeEnter = node.data(function(d) { return d }).enter().append('tr');
 
 
       columns.forEach(function(column, index) {
@@ -811,6 +828,14 @@ nv.models.indentedTree3 = function() {
               .style('padding', '0 1px')
               .style('display', function(d) { return icon(d) ? 'inline-block' : 'none'; })
               .on('click', click);
+		nodeName.append('div')
+		.classed('nv-color',true)
+		.style('width', '14px')
+              .style('height', '14px')
+              .style('padding', '0 1px')
+			  .style('display','inline-block')
+			  .style('margin-right','10px')
+			  .style('background-color', function(d) { return d.color;});
         }
 
 
@@ -954,6 +979,7 @@ nv.models.indentedTree3 = function() {
 
 
     });
+	//renderWatch.renderEnd('indentedTree3 immediate');
 
     return chart;
   }
@@ -962,7 +988,7 @@ nv.models.indentedTree3 = function() {
   //============================================================
   // Expose Public Variables
   //------------------------------------------------------------
-
+chart.dispatch = dispatch;
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin.top    = typeof _.top    != 'undefined' ? _.top    : margin.top;
@@ -987,7 +1013,7 @@ nv.models.indentedTree3 = function() {
   chart.color = function(_) {
     if (!arguments.length) return color;
     color = nv.utils.getColor(_);
-    scatter.color(color);
+    //scatter.color(color);
     return chart;
   };
 

@@ -126,8 +126,8 @@ nv.models.gauge = function() {
                 .attr("class", "gauge")
                 .attr("x", this.myContainer.x)//this.config.cx-this.config.size/4)
                 .attr("y", this.myContainer.y)//this.config.cy-this.config.size/4)
-                .attr("width", this.config.size)//this.myContainer.width)
-                .attr("height", this.config.size);//this.myContainer.height);
+                .attr("width", this.config.size*1.1)//this.myContainer.width)
+                .attr("height", this.config.size*1.1);//this.myContainer.height);
   
             this.body.append("svg:circle")	// outer shell
                 .attr("cx", this.config.cx)
@@ -263,7 +263,7 @@ nv.models.gauge = function() {
             var pointerContainer = this.body.selectAll(".pointerContainer");
             var face = faceContainer.selectAll("path");
             if (face == 0)
-	    {
+			{
                 faceContainer
                   .append("svg:path")
                   .attr("d", arc0) //d3.svg.arc()
@@ -272,12 +272,13 @@ nv.models.gauge = function() {
                   .attr("transform",
                       "translate(" + self.config.cx + ", " + self.config.cy + ")");
 
-		this.drawBands(bandsContainer);
-	        this.drawTicks(ticksContainer,colorTicks);
-                var fontSize = Math.round(this.config.size / 11);
+				this.drawBands(bandsContainer);
+				this.drawTicks(ticksContainer,colorTicks);
+				var fontSize = Math.round(this.config.size / 11);
                 faceContainer.append("svg:text")
                     .attr("x", this.config.cx)
-                    .attr("y", this.config.cy - this.config.size/6 - fontSize / 2 )
+                    //.attr("y", this.config.cy - this.config.size/6 - fontSize / 2 )
+					.attr("y", this.config.cy + this.config.size/2 + fontSize / 2 )
                     .attr("dy", fontSize / 2)
                     .attr("text-anchor", "middle")
                     .text(this.config.label)
@@ -489,7 +490,7 @@ nv.models.gauge = function() {
         duration: {get: function(){return duration;}, set: function(_){
             duration = _;
             renderWatch.reset(duration);
-            //gauge.duration(duration);
+            gauge.duration(duration);
         }},
         margin: {get: function(){return margin;}, set: function(_){
             margin.top    = _.top    !== undefined ? _.top    : margin.top;
