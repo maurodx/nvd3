@@ -1,11 +1,11 @@
-nv.models.sunburstChart = function() {
+nv.models.sunburstChart1 = function() {
     "use strict";
 
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
 
-    var sunburst = nv.models.sunburst();
+    var sunburst = nv.models.sunburst1();
     var tooltip = nv.models.tooltip();
 
     var margin = {top: 30, right: 20, bottom: 20, left: 20}
@@ -13,11 +13,11 @@ nv.models.sunburstChart = function() {
         , height = null
         , color = nv.utils.defaultColor()
         , id = Math.round(Math.random() * 100000)
-		, state = nv.utils.state()
         , defaultState = null
         , noData = null
         , duration = 250
         , dispatch = d3.dispatch('stateChange', 'changeState','renderEnd');
+
 
     //============================================================
     // Private Variables
@@ -40,11 +40,11 @@ nv.models.sunburstChart = function() {
 
         selection.each(function(data) {
             var container = d3.select(this);
-			
+
             nv.utils.initSVG(container);
 
-            var availableWidth = nv.utils.availableWidth(width, container, margin),
-                availableHeight = nv.utils.availableHeight(height, container, margin);
+            var availableWidth = nv.utils.availableWidth(width, container, margin);
+            var availableHeight = nv.utils.availableHeight(height, container, margin);
 
             chart.update = function() {
                 if (duration === 0) {
@@ -55,7 +55,6 @@ nv.models.sunburstChart = function() {
             };
             chart.container = container;
 
-			
             // Display No Data message if there's nothing to show.
             if (!data || !data.length) {
                 nv.utils.noData(chart, container);
@@ -64,9 +63,8 @@ nv.models.sunburstChart = function() {
                 container.selectAll('.nv-noData').remove();
             }
 
-           
             sunburst.width(availableWidth).height(availableHeight);
-            container.call(sunburst);		
+            container.call(sunburst);
         });
 
         renderWatch.renderEnd('sunburstChart immediate');
@@ -78,9 +76,9 @@ nv.models.sunburstChart = function() {
     //------------------------------------------------------------
 
     sunburst.dispatch.on('elementMouseover.tooltip', function(evt) {
-        evt['series'] = {
+        evt.series = {
             key: evt.data.name,
-            value: evt.data.size,
+            value: (evt.data.value || evt.data.size),
             color: evt.color
         };
         tooltip.data(evt).hidden(false);
@@ -109,8 +107,7 @@ nv.models.sunburstChart = function() {
         // simple options, just get/set the necessary values
         noData:         {get: function(){return noData;},         set: function(_){noData=_;}},
         defaultState:   {get: function(){return defaultState;},   set: function(_){defaultState=_;}},
-		width:      {get: function(){return width;}, set: function(_){width=_;}},
-        height:     {get: function(){return height;}, set: function(_){height=_;}},
+
         // options that require extra logic in the setter
         color: {get: function(){return color;}, set: function(_){
             color = _;
@@ -131,4 +128,5 @@ nv.models.sunburstChart = function() {
     nv.utils.inheritOptions(chart, sunburst);
     nv.utils.initOptions(chart);
     return chart;
+
 };
